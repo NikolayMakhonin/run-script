@@ -1,6 +1,6 @@
 {
 	"name": "@flemist/run-script",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Use JavaScript instead npm scripts",
 	"author": {
 		"name": "Nikolay Makhonin",
@@ -48,6 +48,7 @@
 		"access": "public"
 	},
 	"scripts": {
+		"prepublishOnly": "npm run ci",
 		"lint": "eslint \"./src/**/*.ts\"",
 		"build": "tsc",
 		"test": "mocha ./dist/**/*.test.js",
