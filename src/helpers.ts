@@ -4,10 +4,10 @@ import {spawn} from 'child_process'
 import colors from 'kleur'
 // import spawn from 'spawn-command-with-kill'
 import psTree from 'ps-tree'
-import readline from 'readline'
 import {IRunOptions, RunStatus} from './contracts'
 import {getGlobalConfig} from './globalConfig'
 import path from 'path'
+import {lineByLine} from './lineByLine'
 // import kill from 'tree-kill'
 
 // region helpers
@@ -534,44 +534,45 @@ export function run(command, {
 			})
 
 		if (proc.stdout) {
-			readline.createInterface({
-				input    : proc.stdout,
-				terminal : false,
-				crlfDelay: 100,
-			}).on('line', line => {
-				try {
-					const error = !dontSearchErrors && stdOutSearchError(line)
-					if (!dontShowOutputs && logFilter(line)) {
-						line = correctLog(line)
-						process.stdout.write(`${line}\n`)
+			lineByLine({
+				input   : proc.stdout,
+				maxDelay: 100,
+				handler : line => {
+					try {
+						const error = !dontSearchErrors && stdOutSearchError(line)
+						if (!dontShowOutputs && logFilter(line)) {
+							line = correctLog(line)
+							process.stdout.write(`${line}\n`)
+						}
+						if (error) {
+							_reject(`ERROR DETECTED: ${error}`)
+						}
+					} catch (ex) {
+						_reject(ex)
 					}
-					if (error) {
-						_reject(`ERROR DETECTED: ${error}`)
-					}
-				} catch (ex) {
-					_reject(ex)
-				}
+				},
 			})
 		}
 
 		if (proc.stderr) {
-			readline.createInterface({
+			lineByLine({
 				input   : proc.stderr,
-				terminal: false,
-			}).on('line', line => {
-				try {
-					if (!dontSearchErrors && stdErrIsError(line)) {
-						process.stdout.write(`STDERR: ${line}\n`)
-						_reject(line)
-						return
+				maxDelay: 1000,
+				handler : line => {
+					try {
+						if (!dontSearchErrors && stdErrIsError(line)) {
+							process.stdout.write(`STDERR: ${line}\n`)
+							_reject(line)
+							return
+						}
+						if (!dontShowOutputs && logFilter(line)) {
+							line = correctLog(line)
+							process.stdout.write(`${line}\n`)
+						}
+					} catch (ex) {
+						_reject(ex)
 					}
-					if (!dontShowOutputs && logFilter(line)) {
-						line = correctLog(line)
-						process.stdout.write(`${line}\n`)
-					}
-				} catch (ex) {
-					_reject(ex)
-				}
+				},
 			})
 		}
 

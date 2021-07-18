@@ -2,7 +2,7 @@
 import assert from 'assert'
 const { removeColor } = require('./helpers')
 
-describe('node > run', function () {
+describe('run', function () {
 	this.timeout(20000)
 
 	function delay(milliseconds) {

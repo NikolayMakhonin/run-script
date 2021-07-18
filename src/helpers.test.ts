@@ -3,7 +3,7 @@ import assert from 'assert'
 import {run} from './helpers'
 import {Writable} from 'stream'
 
-describe('node > helpers', function () {
+describe('helpers', function () {
 	this.timeout(20000)
 
 	it('run', async function () {
