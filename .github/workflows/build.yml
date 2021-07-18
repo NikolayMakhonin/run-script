@@ -13,5 +13,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
+      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v2
       - run: npm run ci
