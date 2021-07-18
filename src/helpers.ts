@@ -542,7 +542,7 @@ export function run(command, {
 						const error = !dontSearchErrors && stdOutSearchError(line)
 						if (!dontShowOutputs && logFilter(line)) {
 							line = correctLog(line)
-							process.stdout.write(`${line}\n`)
+							process.stdout.write(`${line}`)
 						}
 						if (error) {
 							_reject(`ERROR DETECTED: ${error}`)
@@ -561,13 +561,13 @@ export function run(command, {
 				handler : line => {
 					try {
 						if (!dontSearchErrors && stdErrIsError(line)) {
-							process.stdout.write(`STDERR: ${line}\n`)
+							process.stdout.write(`STDERR: ${line}`)
 							_reject(line)
 							return
 						}
 						if (!dontShowOutputs && logFilter(line)) {
 							line = correctLog(line)
-							process.stdout.write(`${line}\n`)
+							process.stdout.write(`${line}`)
 						}
 					} catch (ex) {
 						_reject(ex)
