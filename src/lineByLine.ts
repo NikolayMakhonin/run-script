@@ -57,22 +57,22 @@ export function lineByLine({
 	}
 
 	function emitLines(includingIncompleteLine: boolean) {
-		const len = buffer.length
+		if (buffer.length === 0) {
+			return
+		}
 
 		for (let i = 0, len = buffer.length - 1; i < len; i++) {
 			const line = buffer[i]
 			handler(line)
 		}
 
-		if (buffer.length > 0) {
-			const line = buffer[buffer.length - 1]
-			if (includingIncompleteLine || line.endsWith('\n')) {
-				handler(line)
-				buffer.length = 0
-			} else {
-				buffer[0] = buffer[buffer.length - 1]
-				buffer.length = 1
-			}
+		const line = buffer[buffer.length - 1]
+		if (includingIncompleteLine || line.endsWith('\n')) {
+			handler(line)
+			buffer.length = 0
+		} else {
+			buffer[0] = buffer[buffer.length - 1]
+			buffer.length = 1
 		}
 	}
 
