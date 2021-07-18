@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow,global-require */
 import assert from 'assert'
-import {run} from './helpers'
+const { removeColor } = require('./helpers')
 
 describe('node > run', function () {
 	this.timeout(20000)
@@ -30,7 +30,7 @@ describe('node > run', function () {
 				stdout.length = 0
 			}
 			process.stdout.write = function stdout_write_custom() {
-				stdout.push(arguments[0])
+				stdout.push(removeColor(arguments[0]))
 				return process_stdout_write.apply(this, arguments)
 			} as any
 			process.stderr.write = function stderr_write_custom() {
@@ -46,7 +46,7 @@ describe('node > run', function () {
 			await require('./run')
 			await delay(1000)
 			assertOutput([
-				`\u001b[34mRUN: ${command}\u001b[39m\n`,
+				`RUN: ${command}\n`,
 				...stdoutExpected,
 			])
 
