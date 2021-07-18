@@ -9,9 +9,9 @@ name: Build and test
 jobs:
   build_and_test:
     runs-on:
-      ubuntu-latest
-      windows-latest
-      macos-latest
+      - ubuntu-latest
+      - windows-latest
+      - macos-latest
     steps:
       - uses: actions/checkout@v2
       - run: npm run ci
