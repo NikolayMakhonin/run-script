@@ -535,8 +535,9 @@ export function run(command, {
 
 		if (proc.stdout) {
 			readline.createInterface({
-				input   : proc.stdout,
-				terminal: false,
+				input    : proc.stdout,
+				terminal : false,
+				crlfDelay: 100,
 			}).on('line', line => {
 				try {
 					const error = !dontSearchErrors && stdOutSearchError(line)
