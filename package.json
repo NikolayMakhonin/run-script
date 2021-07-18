@@ -1,0 +1,74 @@
+{
+	"name": "@flemist/run-script",
+	"version": "0.3.0",
+	"description": "Use JavaScript instead npm scripts",
+	"author": {
+		"name": "Nikolay Makhonin",
+		"url": "https://github.com/NikolayMakhonin/"
+	},
+	"homepage": "https://github.com/NikolayMakhonin/run-script/",
+	"bugs": {
+		"url": "https://github.com/NikolayMakhonin/run-script/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+ssh://git@github.com:NikolayMakhonin/run-script.git"
+	},
+	"license": "CC0-1.0",
+	"keywords": [
+		"npm",
+		"run",
+		"script",
+		"scripts",
+		"cli",
+		"execute",
+		"run-script",
+		"javascript",
+		"js",
+		"parallel",
+		"sequential",
+		"helpers",
+		"utils",
+		"tools",
+		"shell",
+		"ci"
+	],
+	"files": [
+		"dist/**"
+	],
+	"types": "dist/index.d.ts",
+	"main": "dist/index.js",
+	"bin": {
+		"run-script": "./dist/run.js"
+	},
+	"engines": {
+		"node": ">= 8.6.0"
+	},
+	"scripts": {
+		"lint": "eslint \"./src/**/*.ts\"",
+		"build": "tsc",
+		"test": "mocha ./dist/**/*.test.js",
+		"test:watch": "mocha --require ts-node/register ./src/**/*.test.ts --watch",
+		"ci": "npm i && npm run lint && npm run build && npm run test"
+	},
+	"devDependencies": {
+		"@types/assert": "^1.5.5",
+		"@types/mocha": "^8.2.2",
+		"@types/node": "^16.3.3",
+		"@types/yargs": "^17.0.2",
+		"@typescript-eslint/eslint-plugin": "^4.13.0",
+		"@typescript-eslint/parser": "^4.13.0",
+		"assert": "^2.0.0",
+		"eslint": "^7.18.0",
+		"eslint-config-pro": "^2.1.1",
+		"eslint-plugin-sonarjs": "^0.9.1",
+		"mocha": "^9.0.2",
+		"ts-node": "^10.0.0",
+		"typescript": "^4.3.5"
+	},
+	"dependencies": {
+		"yargs": "^16.1.0",
+		"ps-tree": "^1.2.0",
+		"kleur": "^4.1.1"
+	}
+}
