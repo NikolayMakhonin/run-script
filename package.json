@@ -1,6 +1,6 @@
 {
 	"name": "@flemist/run-script",
-	"version": "0.3.0",
+	"version": "1.0.0",
 	"description": "Use JavaScript instead npm scripts",
 	"author": {
 		"name": "Nikolay Makhonin",
@@ -43,6 +43,9 @@
 	},
 	"engines": {
 		"node": ">= 8.6.0"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"scripts": {
 		"lint": "eslint \"./src/**/*.ts\"",
