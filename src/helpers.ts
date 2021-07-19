@@ -26,9 +26,9 @@ function sortObjectKeys(obj) {
 		return Object.keys(obj)
 			.sort()
 			.reduce((a, key) => {
-				a[key] = sortObjectKeys(obj[key]);
-				return a;
-			}, {});
+				a[key] = sortObjectKeys(obj[key])
+				return a
+			}, {})
 	}
 
 	return obj
