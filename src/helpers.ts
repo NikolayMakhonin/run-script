@@ -13,13 +13,34 @@ export function singleProcess<TThis, TArgs extends any[], TValue = void>(
 	}
 }
 
+function sortObjectKeys(obj) {
+	if (obj == null) {
+		return obj
+	}
+
+	if (Array.isArray(obj)) {
+		return obj.map(sortObjectKeys)
+	}
+
+	if (obj instanceof Object) {
+		return Object.keys(obj)
+			.sort()
+			.reduce((a, key) => {
+				a[key] = sortObjectKeys(obj[key]);
+				return a;
+			}, {});
+	}
+
+	return obj
+}
+
 export function singleCall<TThis, TArgs extends any[], TValue = void>(
 	func: Func<TThis, TArgs, TValue>,
 ): Func<TThis, TArgs, TValue> {
 	const cache = {}
 
 	return function _singleCall(...args) {
-		const id = JSON.stringify(args)
+		const id = JSON.stringify(sortObjectKeys(args))
 		const cacheItem = cache[id]
 		if (cacheItem) {
 			if (cacheItem.error) {
