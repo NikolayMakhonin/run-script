@@ -1,2 +1,6 @@
-export * from './helpers'
+export * from './run-func'
 export * from './contracts'
+export {singleCall} from './helpers'
+export {singleProcess} from './helpers'
+export {Func} from './helpers'
+export {runOnce} from './run-func'

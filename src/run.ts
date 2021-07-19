@@ -2,7 +2,7 @@
 
 import {GLOBAL_CONFIG_ENV} from './contracts'
 /* eslint-disable global-require */
-import {run} from './helpers'
+import {run} from './run-func'
 import yargs from 'yargs'
 import path from 'path'
 

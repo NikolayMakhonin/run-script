@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 import assert from 'assert'
-import {run} from './helpers'
+import {run} from './run-func'
 import {Transform, Writable} from 'stream'
 import {lineByLine} from './lineByLine'
 

@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow,global-require */
 import assert from 'assert'
-const { removeColor } = require('./helpers')
+const { removeColor } = require('./run-func')
 
 describe('run', function () {
 	this.timeout(20000)

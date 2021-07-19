@@ -32,8 +32,8 @@ export function lineByLine({
 		: null
 
 	const buffer = []
-	function onData(chunk) {
-		const str = chunk.toString()
+	function onData(chunk: Buffer) {
+		const str = chunk.toString('utf-8')
 		let prevIndex = 0
 		let firstLine = true
 		const len = str.length
