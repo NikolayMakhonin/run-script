@@ -8,7 +8,7 @@ import {IRunOptions, RunStatus} from './contracts'
 import {getGlobalConfig} from './globalConfig'
 import path from 'path'
 import {lineByLine} from './lineByLine'
-import {singleCall} from './helpers'
+import {singleCall, withTimeout} from './helpers'
 // import kill from 'tree-kill'
 
 // region helpers
@@ -386,7 +386,7 @@ interface IRunResult {
 	both: string
 }
 
-export function run(command: string, {
+function _run(command: string, {
 	env,
 	cwd,
 	timeout,
@@ -415,7 +415,14 @@ export function run(command: string, {
 			cwdRelative = ''
 		}
 
-		const description = `${cwdRelative ? cwdRelative + '> ' : ''}${command}`
+		let description = ''
+		if (cwdRelative) {
+			description += cwdRelative + '> '
+		}
+		if (timeout) {
+			description += '(timeout: ' + Math.round(timeout) + ') '
+		}
+		description += command
 
 		console.log(colors.blue(`RUN: ${description}`))
 
@@ -587,6 +594,10 @@ export function run(command: string, {
 		}
 		return null
 	})
+}
+
+export function run(command: string, options: IRunOptions = {}): Promise<IRunResult> {
+	return withTimeout(command, options.timeout, () => _run(command, options))
 }
 
 (Promise.prototype as any).stopOnError = function stopOnError() {

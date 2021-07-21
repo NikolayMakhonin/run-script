@@ -1,6 +1,6 @@
 {
 	"name": "@flemist/run-script",
-	"version": "1.0.10",
+	"version": "1.0.11",
 	"description": "Use JavaScript instead npm scripts",
 	"author": {
 		"name": "Nikolay Makhonin",
