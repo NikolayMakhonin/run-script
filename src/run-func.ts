@@ -386,7 +386,7 @@ interface IRunResult {
 	both: string
 }
 
-export function run(command, {
+export function run(command: string, {
 	env,
 	cwd,
 	timeout,
