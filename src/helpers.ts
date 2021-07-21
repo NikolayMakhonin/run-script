@@ -64,3 +64,18 @@ export function singleCall<TThis, TArgs extends any[], TValue = void>(
 		}
 	}
 }
+
+export async function withTimeout<T>(func: () => Promise<T>, timeoutMs: number): Promise<T> {
+  let timer: NodeJS.Timeout
+  const timeoutPromise = new Promise<T>((resolve, reject) => {
+    timer = setTimeout(reject, timeoutMs)
+  })
+  try {
+    return await Promise.race([
+      func(),
+      timeoutPromise,
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
+}
