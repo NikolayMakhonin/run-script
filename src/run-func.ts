@@ -387,6 +387,7 @@ interface IRunResult {
 }
 
 function _run(command: string, {
+	args,
 	env,
 	cwd,
 	timeout,
@@ -437,6 +438,7 @@ function _run(command: string, {
 
 		const proc = spawn(
 			command,
+			args,
 			{
 				cwd,
 				env: {

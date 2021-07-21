@@ -20,6 +20,7 @@ export type TextPredicate = (text: string, next: TextPredicate) => boolean
 export type ErrorSearch = (text: string, next: ErrorSearch) => string | void | null | false
 
 export interface IRunOptions {
+	args?: string[],
 	env?: ProcessEnv,
 	cwd? : string,
 	timeout?: number,
