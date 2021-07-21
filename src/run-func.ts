@@ -549,8 +549,9 @@ function _run(command: string, {
 				maxDelay: 100,
 				handler : line => {
 					try {
-						const error = !dontSearchErrors && stdOutSearchError(line)
-						if (!dontShowOutputs && logFilter(line)) {
+						const lineTrim = line.trim()
+						const error = !dontSearchErrors && stdOutSearchError(lineTrim)
+						if (!dontShowOutputs && logFilter(lineTrim)) {
 							line = correctLog(line)
 							process.stdout.write(`${line}`)
 						}
@@ -570,12 +571,13 @@ function _run(command: string, {
 				maxDelay: 1000,
 				handler : line => {
 					try {
-						if (!dontSearchErrors && stdErrIsError(line)) {
+						const lineTrim = line.trim()
+						if (!dontSearchErrors && stdErrIsError(lineTrim)) {
 							process.stdout.write(`STDERR: ${line}`)
 							_reject(line)
 							return
 						}
-						if (!dontShowOutputs && logFilter(line)) {
+						if (!dontShowOutputs && logFilter(lineTrim)) {
 							line = correctLog(line)
 							process.stdout.write(`${line}`)
 						}
