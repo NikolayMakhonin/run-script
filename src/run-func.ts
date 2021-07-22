@@ -406,7 +406,7 @@ function _run(command: string, {
 			}
 		}))()
 	}).catch(err => {
-		if (!wasKillAll) {
+		if (!wasKillAll()) {
 			return Promise.reject(err)
 		}
 		return null
