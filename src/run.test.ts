@@ -1,5 +1,6 @@
 /* eslint-disable no-shadow,global-require */
 import assert from 'assert'
+import colors from 'kleur'
 const { removeColor } = require('./run-func')
 
 describe('run', function () {
@@ -30,7 +31,7 @@ describe('run', function () {
 				stdout.length = 0
 			}
 			process.stdout.write = function stdout_write_custom() {
-				stdout.push(removeColor(arguments[0]))
+				stdout.push(arguments[0])
 				return process_stdout_write.apply(this, arguments)
 			} as any
 			process.stderr.write = function stderr_write_custom() {
@@ -46,7 +47,7 @@ describe('run', function () {
 			await require('./run')
 			await delay(1000)
 			assertOutput([
-				`RUN: ${command}\n`,
+				colors.blue(`RUN: ${command}`) + '\n',
 				...stdoutExpected,
 			])
 
@@ -71,9 +72,10 @@ describe('run', function () {
 			'node', './index.js',
 			'--config', '.run-script-rc.js',
 		],
-		'console.log(123)',
-		'console.log(123)', [
-			'123\n',
+		`console.log('${colors.blue('123')}'); console.log('${colors.blue('234')}')`,
+		`console.log('${colors.blue('123')}'); console.log('${colors.blue('234')}')`, [
+			`${colors.blue('123')}\n`,
+			`${colors.blue('234')}\n`,
 		])
 	})
 
@@ -83,9 +85,10 @@ describe('run', function () {
 			'--config', '.run-script-rc.js',
 			'--transform', 'transform.js',
 		],
-		'console.log(234)',
-		'console.log(123)', [
-			'123\n',
+		`console.log('${colors.blue('234')}'); console.log('${colors.blue('345')}')`,
+		`console.log('${colors.blue('123')}'); console.log('${colors.blue('345')}')`, [
+			`${colors.blue('123')}\n`,
+			`${colors.blue('345')}\n`,
 		])
 	})
 })
