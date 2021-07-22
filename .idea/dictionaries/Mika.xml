@@ -5,7 +5,11 @@
       <w>funcs</w>
       <w>neuro</w>
       <w>neuronet</w>
+      <w>pids</w>
+      <w>procs</w>
       <w>sonarjs</w>
+      <w>stdboth</w>
+      <w>taskkill</w>
       <w>yargs</w>
     </words>
   </dictionary>

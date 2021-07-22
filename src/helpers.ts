@@ -1,14 +1,22 @@
 // eslint-disable-next-line no-extend-native
-
-export type Func<TThis, TArgs extends any[], TValue = void> = (this: TThis, ...args: TArgs) => TValue
+import {Func} from './contracts'
+import {funcLog} from './log'
 
 export function singleProcess<TThis, TArgs extends any[], TValue = void>(
 	func: Func<TThis, TArgs, TValue>,
+): Func<TThis, TArgs, Promise<TValue extends Promise<infer T> ? T : TValue>>
+export function singleProcess<TThis, TArgs extends any[], TValue = void>(
+	description: string,
+	func: Func<TThis, TArgs, TValue>,
+): Func<TThis, TArgs, Promise<TValue extends Promise<infer T> ? T : TValue>>
+export function singleProcess<TThis, TArgs extends any[], TValue = void>(
+	descriptionOrFunc: string | Func<TThis, TArgs, TValue>,
+	func?: Func<TThis, TArgs, TValue>,
 ): Func<TThis, TArgs, Promise<TValue extends Promise<infer T> ? T : TValue>> {
 	let locker: TValue
 	return async function _singleProcess(this: TThis, ...args: TArgs) {
 		await locker
-		locker = func.call(this, ...args)
+		locker = funcLog(descriptionOrFunc, func).call(this, ...args)
 		return locker as any
 	}
 }
@@ -36,10 +44,18 @@ function sortObjectKeys(obj) {
 
 export function singleCall<TThis, TArgs extends any[], TValue = void>(
 	func: Func<TThis, TArgs, TValue>,
-): Func<TThis, TArgs, TValue> {
+): Func<TThis, TArgs, Promise<TValue extends Promise<infer T> ? T : TValue>>
+export function singleCall<TThis, TArgs extends any[], TValue = void>(
+	description: string,
+	func: Func<TThis, TArgs, TValue>,
+): Func<TThis, TArgs, Promise<TValue extends Promise<infer T> ? T : TValue>>
+export function singleCall<TThis, TArgs extends any[], TValue = void>(
+	descriptionOrFunc: string | Func<TThis, TArgs, TValue>,
+	func?: Func<TThis, TArgs, TValue>,
+): Func<TThis, TArgs, Promise<TValue extends Promise<infer T> ? T : TValue>> {
 	const cache = {}
 
-	return function _singleCall(...args) {
+	return async function _singleCall(...args) {
 		const id = JSON.stringify(sortObjectKeys(args))
 		const cacheItem = cache[id]
 		if (cacheItem) {
@@ -55,7 +71,7 @@ export function singleCall<TThis, TArgs extends any[], TValue = void>(
 		cache[id] = false
 
 		try {
-			const result = func.call(this, ...args)
+			const result = await funcLog(descriptionOrFunc, func).call(this, ...args)
 			cache[id] = {result}
 			return result
 		} catch (error) {
@@ -80,6 +96,8 @@ export async function withTimeout<T>(description: string, timeoutMs: number, fun
 			timeoutPromise,
 		])
 	} finally {
-		clearTimeout(timer)
+		if (timer) {
+			clearTimeout(timer)
+		}
 	}
 }

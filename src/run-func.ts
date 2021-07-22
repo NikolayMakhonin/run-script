@@ -2,14 +2,13 @@
 /* eslint-disable no-unused-vars,callback-return,no-process-exit,no-process-env,no-extra-semi,@typescript-eslint/no-extra-semi */
 import {spawn} from 'child_process'
 import colors from 'kleur'
-// import spawn from 'spawn-command-with-kill'
-import psTree from 'ps-tree'
-import {IRunOptions, RunStatus} from './contracts'
+import {IRunOptions} from './contracts'
 import {getGlobalConfig} from './globalConfig'
 import path from 'path'
 import {lineByLine} from './lineByLine'
 import {singleCall, withTimeout} from './helpers'
-// import kill from 'tree-kill'
+import {addProcess, killAll, wasKillAll} from './kill'
+import {funcLog, printError} from './log'
 
 // region helpers
 
@@ -205,177 +204,6 @@ function _logFilter(text: string) {
 // 	stdio?: 'pipe' | Array<null | undefined | 'pipe'>;
 // }
 
-let wasKillAll
-const processList = []
-const runStates = []
-
-process.on('SIGTERM', () => {
-	console.log('SIGTERM')
-	killAll({isFailure: true, syncKill: true})
-})
-process.on('SIGHUP', () => {
-	console.log('SIGHUP')
-	killAll({isFailure: true, syncKill: true})
-})
-process.on('SIGINT', () => {
-	console.log('SIGINT')
-	killAll({isFailure: true, syncKill: true})
-})
-process.on('SIGBREAK', () => {
-	console.log('SIGBREAK')
-	killAll({isFailure: true, syncKill: true})
-})
-
-process.on('beforeExit', () => {
-	// console.log('beforeExit')
-	killAll({isFailure: false, syncKill: false})
-})
-process.on('exit', () => {
-	console.log('exit')
-	killAll({isFailure: false, syncKill: true})
-})
-
-// process.on('disconnect', killAll)
-process.on('uncaughtException', err => {
-	printError('uncaughtException', err)
-	killAll({isFailure: true, syncKill: false})
-})
-
-function printRunStates() {
-	for (let i = 0; i < runStates.length; i++) {
-		const state = runStates[i]
-
-		const message = `${state.status} (${
-			((state.timeEnd || Date.now()) - state.timeStart) / 1000
-		} sec): ${state.description}`
-
-		switch (state.status) {
-			case RunStatus.RUNNED:
-				console.log(colors.blue(message))
-				break
-			case RunStatus.SUCCESS:
-				console.log(colors.cyan(message))
-				break
-			case RunStatus.ERROR:
-				console.error(colors.red(message))
-				break
-			default:
-				throw new Error(`Unknown status: ${state.status}`)
-		}
-	}
-}
-
-function printError(prefix, err) {
-	console.error(colors.red().bold(`${prefix}: ${err && err.stack || err && err.toString() || err}`))
-}
-
-function addProcess(proc) {
-	processList.push(proc)
-}
-
-function _killByPidsUnix(...pids) {
-	if (!pids.length) {
-		return
-	}
-
-	const params = pids.map(o => o.toString())
-	params.unshift('-15')
-	console.log(`kill ${params.join(' ')}`)
-
-	spawn('kill', params, {
-		detached: true,
-		stdio   : 'ignore',
-	})
-		// .on('error', err => printError('kill error', err))
-		.unref()
-}
-
-function killByPidsUnix(...pids) {
-	if (!pids.length) {
-		return
-	}
-
-	_killByPidsUnix(...pids)
-
-	for (let i = 0; i < pids.length; i++) {
-		psTree(pids[i], (err, children) => {
-			if (err) {
-				printError('psTree error', err)
-				children = []
-			}
-
-			_killByPidsUnix(...children.map(o => o.PID))
-		})
-	}
-}
-
-function killByPidsWindows(...pids) {
-	if (!pids.length) {
-		return
-	}
-
-	const params = ['/F', '/T']
-	for (let i = 0; i < pids.length; i++) {
-		params.push('/PID')
-		params.push(pids[i].toString())
-	}
-	console.log(`taskkill ${params.join(' ')}`)
-	spawn('taskkill', params, {
-		detached: true,
-		stdio   : 'ignore',
-	})
-		// .on('error', err => printError('kill error', err))
-		.unref()
-}
-
-function killByPids(...pids) {
-	if (pids.length) {
-		// console.log(`Kill All: ${pids.join(' ')}`)
-		if (process.platform === 'win32') {
-			killByPidsWindows(...pids)
-		} else {
-			killByPidsUnix(...pids)
-		}
-	}
-}
-
-function killAll({
-	isFailure,
-	syncKill,
-}: {
-	isFailure: boolean,
-	syncKill: boolean,
-}) {
-	if (wasKillAll) {
-		return
-	}
-	wasKillAll = true
-
-	console.log('Terminating...')
-
-	const kill = () => {
-		const procs = processList.filter(o => o.pid && !o.killed && o.pid !== process.pid)
-		const pids = procs.map(o => o.pid)
-
-		printRunStates()
-		killByPids(...pids)
-		if (runStates.some(o => o.status === RunStatus.ERROR)) {
-			isFailure = true
-		}
-		runStates.length = 0
-
-		if (isFailure) {
-			process.exit(1)
-		}
-	}
-
-	if (syncKill) {
-		kill()
-	} else {
-		setTimeout(kill, 100)
-	}
-}
-
 // Buffer class
 // type BufferEncoding = 'ascii' | 'utf8' | 'utf-8' | 'utf16le' | 'ucs2'
 // | 'ucs-2' | 'base64' | 'latin1' | 'binary' | 'hex';
@@ -400,12 +228,7 @@ function _run(command: string, {
 	dontShowOutputs,
 	returnOutputs,
 }: IRunOptions = {}): Promise<IRunResult> {
-	return new Promise<IRunResult>((resolve, reject) => {
-		if (wasKillAll) {
-			reject('Was kill all')
-			return
-		}
-
+	return Promise.resolve().then(() => {
 		const currentDir = process.cwd()
 		cwd = path.resolve(cwd || currentDir)
 		let cwdRelative = path.relative(currentDir, cwd)
@@ -425,175 +248,165 @@ function _run(command: string, {
 		}
 		description += command
 
-		console.log(colors.blue(`RUN: ${description}`))
-
-		const runState = {
-			status   : RunStatus.RUNNED,
-			timeStart: Date.now(),
-			timeEnd  : void 0 as number,
-			command,
-			description,
+		if (wasKillAll()) {
+			return Promise.reject('Was kill all')
 		}
-		runStates.push(runState)
 
-		const proc = spawn(
-			command,
-			args,
-			{
-				cwd,
-				env: {
-					...process.env,
-					...env,
-				},
-				timeout,
-				stdio: [stdin, 'pipe', 'pipe'],
-				shell,
-			})
-
-		let stdoutString: string = void 0
-		let stderrString: string = void 0
-		let stdbothString: string = void 0
-
-		const _resolve = () => {
-			runState.status = RunStatus.SUCCESS
-			runState.timeEnd = Date.now()
-			Promise.all([
-				proc.stdout && new Promise(r => {
-					proc.stdout.on('end', r)
-					if (proc.stdout.readableEnded) {
-						r(void 0)
-					}
-				}),
-				proc.stderr && new Promise(r => {
-					proc.stderr.on('end', r)
-					if (proc.stderr.readableEnded) {
-						r(void 0)
-					}
-				}),
-			])
-				.then(() => {
-					resolve(
-						returnOutputs
-							? {
-								out : stdoutString,
-								err : stderrString,
-								both: stdbothString,
-							}
-							: void 0,
-					)
+		return funcLog(description, () => new Promise<IRunResult>((resolve, reject) => {
+			const proc = spawn(
+				command,
+				args,
+				{
+					cwd,
+					env: {
+						...process.env,
+						...env,
+					},
+					timeout,
+					stdio: [stdin, 'pipe', 'pipe'],
+					shell,
 				})
-		}
 
-		const _reject = err => {
-			runState.status = RunStatus.ERROR
-			runState.timeEnd = Date.now()
-			reject(err)
-		}
+			let stdoutString: string = void 0
+			let stderrString: string = void 0
+			let stdbothString: string = void 0
 
-		if (returnOutputs) {
+			const _resolve = () => {
+				Promise.all([
+					proc.stdout && new Promise(r => {
+						proc.stdout.on('end', r)
+						if (proc.stdout.readableEnded) {
+							r(void 0)
+						}
+					}),
+					proc.stderr && new Promise(r => {
+						proc.stderr.on('end', r)
+						if (proc.stderr.readableEnded) {
+							r(void 0)
+						}
+					}),
+				])
+					.then(() => {
+						resolve(
+							returnOutputs
+								? {
+									out : stdoutString,
+									err : stderrString,
+									both: stdbothString,
+								}
+								: void 0,
+						)
+					})
+			}
+
+			const _reject = err => {
+				reject(err)
+			}
+
+			if (returnOutputs) {
+				if (proc.stdout) {
+					stdoutString = ''
+					stdbothString = ''
+					proc.stdout.on('data', chunk => {
+						// const encoding = proc.stdout.readableEncoding
+						const str = chunk.toString() // encoding === 'buffer' ? void 0 : encoding)
+						stdoutString += str
+						stdbothString += str
+					})
+				}
+
+				if (proc.stderr) {
+					stderrString = ''
+					stdbothString = ''
+					proc.stderr.on('data', chunk => {
+						// const encoding = proc.stdout.readableEncoding
+						const str = chunk.toString() // encoding === 'buffer' ? void 0 : encoding)
+						stderrString += str
+						stdbothString += str
+					})
+				}
+			}
+
+			if (!notAutoKill) {
+				addProcess(proc)
+			}
+
+			proc
+				.on('disconnect', () => {
+					_reject('process.disconnect')
+				})
+				.on('close', (code, signal) => {
+					if (!ignoreProcessExitCode && code) {
+						_reject(`process.close(code=${code}, signal=${signal})`)
+					} else {
+						_resolve()
+					}
+				})
+				.on('exit', (code, signal) => {
+					if (!ignoreProcessExitCode && code) {
+						_reject(`process.exit(code=${code}, signal=${signal})`)
+					} else {
+						_resolve()
+					}
+				})
+				.on('message', (message) => {
+					console.log(`process.message: ${message}`)
+				})
+				.on('error', err => {
+					_reject(err)
+				})
+
 			if (proc.stdout) {
-				stdoutString = ''
-				stdbothString = ''
-				proc.stdout.on('data', chunk => {
-					// const encoding = proc.stdout.readableEncoding
-					const str = chunk.toString() // encoding === 'buffer' ? void 0 : encoding)
-					stdoutString += str
-					stdbothString += str
+				lineByLine({
+					input   : proc.stdout,
+					maxDelay: 100,
+					handler : line => {
+						try {
+							const lineTrim = line.trim()
+							const error = !dontSearchErrors && stdOutSearchError(lineTrim)
+							if (!dontShowOutputs && logFilter(lineTrim)) {
+								line = correctLog(line)
+								process.stdout.write(`${line}`)
+							}
+							if (error) {
+								_reject(`ERROR DETECTED: ${error}`)
+							}
+						} catch (ex) {
+							_reject(ex)
+						}
+					},
 				})
 			}
 
 			if (proc.stderr) {
-				stderrString = ''
-				stdbothString = ''
-				proc.stderr.on('data', chunk => {
-					// const encoding = proc.stdout.readableEncoding
-					const str = chunk.toString() // encoding === 'buffer' ? void 0 : encoding)
-					stderrString += str
-					stdbothString += str
+				lineByLine({
+					input   : proc.stderr,
+					maxDelay: 1000,
+					handler : line => {
+						try {
+							const lineTrim = line.trim()
+							if (!dontSearchErrors && stdErrIsError(lineTrim)) {
+								process.stdout.write(`STDERR: ${line}`)
+								_reject(line)
+								return
+							}
+							if (!dontShowOutputs && logFilter(lineTrim)) {
+								line = correctLog(line)
+								process.stdout.write(`${line}`)
+							}
+						} catch (ex) {
+							_reject(ex)
+						}
+					},
 				})
 			}
-		}
 
-		if (!notAutoKill) {
-			addProcess(proc)
-		}
-
-		proc
-			.on('disconnect', () => {
-				_reject('process.disconnect')
-			})
-			.on('close', (code, signal) => {
-				if (!ignoreProcessExitCode && code) {
-					_reject(`process.close(code=${code}, signal=${signal})`)
-				} else {
-					_resolve()
-				}
-			})
-			.on('exit', (code, signal) => {
-				if (!ignoreProcessExitCode && code) {
-					_reject(`process.exit(code=${code}, signal=${signal})`)
-				} else {
-					_resolve()
-				}
-			})
-			.on('message', (message) => {
-				console.log(`process.message: ${message}`)
-			})
-			.on('error', err => {
-				_reject(err)
-			})
-
-		if (proc.stdout) {
-			lineByLine({
-				input   : proc.stdout,
-				maxDelay: 100,
-				handler : line => {
-					try {
-						const lineTrim = line.trim()
-						const error = !dontSearchErrors && stdOutSearchError(lineTrim)
-						if (!dontShowOutputs && logFilter(lineTrim)) {
-							line = correctLog(line)
-							process.stdout.write(`${line}`)
-						}
-						if (error) {
-							_reject(`ERROR DETECTED: ${error}`)
-						}
-					} catch (ex) {
-						_reject(ex)
-					}
-				},
-			})
-		}
-
-		if (proc.stderr) {
-			lineByLine({
-				input   : proc.stderr,
-				maxDelay: 1000,
-				handler : line => {
-					try {
-						const lineTrim = line.trim()
-						if (!dontSearchErrors && stdErrIsError(lineTrim)) {
-							process.stdout.write(`STDERR: ${line}`)
-							_reject(line)
-							return
-						}
-						if (!dontShowOutputs && logFilter(lineTrim)) {
-							line = correctLog(line)
-							process.stdout.write(`${line}`)
-						}
-					} catch (ex) {
-						_reject(ex)
-					}
-				},
-			})
-		}
-
-		if (prepareProcess) {
-			prepareProcess(proc)
-		}
+			if (prepareProcess) {
+				prepareProcess(proc)
+			}
+		}))()
 	}).catch(err => {
 		if (!wasKillAll) {
-			console.error(colors.bold().red(`✗ ${command}\r\n${err && err.stack || err && err.toString() || err}`))
 			return Promise.reject(err)
 		}
 		return null

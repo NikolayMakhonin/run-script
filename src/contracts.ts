@@ -47,3 +47,11 @@ export enum RunStatus {
 	RUNNED = 'RUNNED',
 	SUCCESS = 'SUCCESS',
 }
+
+export type TRunState = {
+	status: RunStatus,
+	timeStart: number,
+	timeEnd: number,
+	description: string,
+}
+export type Func<TThis, TArgs extends any[], TValue = void> = (this: TThis, ...args: TArgs) => TValue
