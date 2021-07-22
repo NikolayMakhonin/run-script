@@ -44,18 +44,18 @@ function sortObjectKeys(obj) {
 
 export function singleCall<TThis, TArgs extends any[], TValue = void>(
 	func: Func<TThis, TArgs, TValue>,
-): Func<TThis, TArgs, Promise<TValue extends Promise<infer T> ? T : TValue>>
+): Func<TThis, TArgs, TValue>
 export function singleCall<TThis, TArgs extends any[], TValue = void>(
 	description: string,
 	func: Func<TThis, TArgs, TValue>,
-): Func<TThis, TArgs, Promise<TValue extends Promise<infer T> ? T : TValue>>
+): Func<TThis, TArgs, TValue>
 export function singleCall<TThis, TArgs extends any[], TValue = void>(
 	descriptionOrFunc: string | Func<TThis, TArgs, TValue>,
 	func?: Func<TThis, TArgs, TValue>,
-): Func<TThis, TArgs, Promise<TValue extends Promise<infer T> ? T : TValue>> {
+): Func<TThis, TArgs, TValue> {
 	const cache = {}
 
-	return async function _singleCall(...args) {
+	return function _singleCall(...args) {
 		const id = JSON.stringify(sortObjectKeys(args))
 		const cacheItem = cache[id]
 		if (cacheItem) {
@@ -66,12 +66,12 @@ export function singleCall<TThis, TArgs extends any[], TValue = void>(
 		}
 
 		if (cacheItem === false) {
-			throw new Error(`Recursive call of single call func: ${func.toString()}`)
+			throw new Error(`Recursive call of single call func: ${func || descriptionOrFunc}`)
 		}
 		cache[id] = false
 
 		try {
-			const result = await funcLog(descriptionOrFunc, func).call(this, ...args)
+			const result = funcLog(descriptionOrFunc, func).call(this, ...args)
 			cache[id] = {result}
 			return result
 		} catch (error) {
