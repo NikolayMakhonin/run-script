@@ -420,7 +420,7 @@ export function run(command: string, options: IRunOptions = {}): Promise<IRunRes
 (Promise.prototype as any).stopOnError = function stopOnError() {
 	return this.catch(err => {
 		printError('Kill on error', err)
-		killAll({isFailure: true, syncKill: false})
+		killAll({isFailure: true})
 	})
 }
 
