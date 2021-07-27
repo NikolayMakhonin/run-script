@@ -66,7 +66,11 @@ export function killAll({
 
 		printRunStates()
 
-		treeKill({pids, force: true})
+		treeKill({
+			parentsPids: pids,
+			ignorePids : [process.pid],
+			force      : true,
+		})
 
 		if (getRunStates().some(o => o.status === RunStatus.ERROR)) {
 			isFailure = true
