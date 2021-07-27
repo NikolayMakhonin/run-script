@@ -1,6 +1,6 @@
 {
 	"name": "@flemist/run-script",
-	"version": "2.1.5",
+	"version": "2.1.6",
 	"description": "Use JavaScript instead npm scripts",
 	"author": {
 		"name": "Nikolay Makhonin",
@@ -72,7 +72,7 @@
 		"typescript": "^4.3.5"
 	},
 	"dependencies": {
-		"@flemist/simple-tree-kill": "0.0.5",
+		"@flemist/simple-tree-kill": "0.0.6",
 		"kleur": "^4.1.1",
 		"yargs": "^17.0.1"
 	}
