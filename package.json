@@ -72,7 +72,7 @@
 		"typescript": "^4.3.5"
 	},
 	"dependencies": {
-		"@flemist/simple-tree-kill": "0.0.4",
+		"@flemist/simple-tree-kill": "0.0.5",
 		"kleur": "^4.1.1",
 		"yargs": "^17.0.1"
 	}
