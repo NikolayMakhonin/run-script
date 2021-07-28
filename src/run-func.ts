@@ -56,13 +56,13 @@ const errorColorRegExp = createColorRegexp([
 	// colors.bgYellow,
 ])
 
-function stdOutSearchError(text: string) {
+function stdOutSearchErrorGlobal(text: string) {
 	return getGlobalConfig().stdOutSearchError
-		? getGlobalConfig().stdOutSearchError(text, _stdOutSearchError)
-		: _stdOutSearchError(text)
+		? getGlobalConfig().stdOutSearchError(text, stdOutSearchErrorDefault)
+		: stdOutSearchErrorDefault(text)
 }
 
-function _stdOutSearchError(text: string) {
+function stdOutSearchErrorDefault(text: string) {
 	const errorColor = text.match(errorColorRegExp)
 	text = removeColor(text)
 
@@ -95,13 +95,13 @@ function correctLog(message) {
 	return message
 }
 
-function stdErrIsError(text: string) {
+function stdErrIsErrorGlobal(text: string) {
 	return getGlobalConfig().stdErrIsError
-		? getGlobalConfig().stdErrIsError(text, _stdErrIsError)
-		: _stdErrIsError(text)
+		? getGlobalConfig().stdErrIsError(text, stdErrIsErrorDefault)
+		: stdErrIsErrorDefault(text)
 }
 
-function _stdErrIsError(text: string) {
+function stdErrIsErrorDefault(text: string) {
 	text = removeColor(text)
 
 	if (text.length < 20) {
@@ -157,13 +157,13 @@ function _stdErrIsError(text: string) {
 
 // region logFilter
 
-function logFilter(text: string) {
+function logFilterGlobal(text: string) {
 	return getGlobalConfig().logFilter
-		? getGlobalConfig().logFilter(text, _logFilter)
-		: _logFilter(text)
+		? getGlobalConfig().logFilter(text, logFilterDefault)
+		: logFilterDefault(text)
 }
 
-function _logFilter(text: string) {
+function logFilterDefault(text: string) {
 	text = removeColor(text)
 
 	// sapper export
@@ -227,7 +227,28 @@ function _run(command: string, {
 	ignoreProcessExitCode,
 	dontShowOutputs,
 	returnOutputs,
+	logFilter,
+	stdOutSearchError,
+	stdErrIsError,
 }: IRunOptions = {}): Promise<IRunResult> {
+	function _logFilter(text: string) {
+		return logFilter
+			? logFilter(text, logFilterGlobal)
+			: logFilterGlobal(text)
+	}
+
+	function _stdOutSearchError(text: string) {
+		return stdOutSearchError
+			? stdOutSearchError(text, stdOutSearchErrorGlobal)
+			: stdOutSearchErrorGlobal(text)
+	}
+
+	function _stdErrIsError(text: string) {
+		return stdErrIsError
+			? stdErrIsError(text, stdErrIsErrorGlobal)
+			: stdErrIsErrorGlobal(text)
+	}
+
 	return Promise.resolve().then(() => {
 		const currentDir = process.cwd()
 		cwd = path.resolve(cwd || currentDir)
@@ -363,8 +384,8 @@ function _run(command: string, {
 					handler : line => {
 						try {
 							const lineTrim = line.trim()
-							const error = !dontSearchErrors && stdOutSearchError(lineTrim)
-							if (!dontShowOutputs && logFilter(lineTrim)) {
+							const error = !dontSearchErrors && _stdOutSearchError(lineTrim)
+							if (!dontShowOutputs && _logFilter(lineTrim)) {
 								line = correctLog(line)
 								process.stdout.write(`${line}`)
 							}
@@ -385,12 +406,12 @@ function _run(command: string, {
 					handler : line => {
 						try {
 							const lineTrim = line.trim()
-							if (!dontSearchErrors && stdErrIsError(lineTrim)) {
+							if (!dontSearchErrors && _stdErrIsError(lineTrim)) {
 								process.stdout.write(`STDERR: ${line}`)
 								_reject(line)
 								return
 							}
-							if (!dontShowOutputs && logFilter(lineTrim)) {
+							if (!dontShowOutputs && _logFilter(lineTrim)) {
 								line = correctLog(line)
 								process.stdout.write(`${line}`)
 							}

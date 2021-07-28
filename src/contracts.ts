@@ -19,7 +19,13 @@ export type TStdIO = StdioOptions | [StdioPipeOrNull, StdioPipeOrNull, StdioPipe
 export type TextPredicate = (text: string, next: TextPredicate) => boolean
 export type ErrorSearch = (text: string, next: ErrorSearch) => string | void | null | false
 
-export interface IRunOptions {
+export interface ILogFilters {
+	logFilter?: TextPredicate,
+	stdOutSearchError?: ErrorSearch,
+	stdErrIsError?: TextPredicate,
+}
+
+export interface IRunOptions extends ILogFilters {
 	args?: string[],
 	env?: ProcessEnv,
 	cwd? : string,
@@ -34,10 +40,7 @@ export interface IRunOptions {
 	returnOutputs?: boolean,
 }
 
-export interface IGlobalConfig {
-	logFilter?: TextPredicate,
-	stdOutSearchError?: ErrorSearch,
-	stdErrIsError?: TextPredicate,
+export interface IGlobalConfig extends ILogFilters {
 }
 
 export const GLOBAL_CONFIG_ENV = 'RUN_SCRIPT_CONFIG_n20fy652y5n'
