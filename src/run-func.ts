@@ -98,9 +98,9 @@ function correctLog(message) {
 
 function stdErrIsErrorGlobal(text: string) {
 	const config = getGlobalConfig()
-	return typeof config.stdErrIsError === 'function'
-		? config.stdErrIsError(text, stdErrIsErrorDefault)
-		: config.stdErrIsError || stdErrIsErrorDefault(text)
+	return typeof config.stdErrIsError === 'function' ? config.stdErrIsError(text, stdErrIsErrorDefault)
+		: config.stdErrIsError == null ? stdErrIsErrorDefault(text)
+		: config.stdErrIsError || null
 }
 
 function stdErrIsErrorDefault(text: string) {
@@ -161,9 +161,9 @@ function stdErrIsErrorDefault(text: string) {
 
 function logFilterGlobal(text: string) {
 	const config = getGlobalConfig()
-	return typeof config.logFilter === 'function'
-		? config.logFilter(text, logFilterDefault)
-		: config.logFilter || logFilterDefault(text)
+	return typeof config.logFilter === 'function' ? config.logFilter(text, logFilterDefault)
+		: config.logFilter == null ? logFilterDefault(text)
+		: config.logFilter || null
 }
 
 function logFilterDefault(text: string) {
@@ -235,9 +235,9 @@ function _run(command: string, {
 	stdErrIsError,
 }: IRunOptions = {}): Promise<IRunResult> {
 	function _logFilter(text: string) {
-		return typeof logFilter === 'function'
-			? logFilter(text, logFilterGlobal)
-			: logFilter || logFilterGlobal(text)
+		return typeof logFilter === 'function' ? logFilter(text, logFilterGlobal)
+			: logFilter == null ? logFilterGlobal(text)
+			: logFilter || null
 	}
 
 	function _stdOutSearchError(text: string) {
@@ -247,9 +247,9 @@ function _run(command: string, {
 	}
 
 	function _stdErrIsError(text: string) {
-		return typeof stdErrIsError === 'function'
-			? stdErrIsError(text, stdErrIsErrorGlobal)
-			: stdErrIsError || stdErrIsErrorGlobal(text)
+		return typeof stdErrIsError === 'function' ? stdErrIsError(text, stdErrIsErrorGlobal)
+			: stdErrIsError == null ? stdErrIsErrorGlobal(text)
+			: stdErrIsError || null
 	}
 
 	return Promise.resolve().then(() => {
