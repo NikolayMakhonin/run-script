@@ -1,5 +1,5 @@
 // eslint-disable-next-line max-len
-/* eslint-disable no-unused-vars,callback-return,no-process-exit,no-process-env,no-extra-semi,@typescript-eslint/no-extra-semi */
+/* eslint-disable no-unused-vars,callback-return,no-process-exit,no-process-env,no-extra-semi,@typescript-eslint/no-extra-semi,multiline-ternary */
 import {spawn} from 'child_process'
 import colors from 'kleur'
 import {IRunOptions} from './contracts'
@@ -57,8 +57,9 @@ const errorColorRegExp = createColorRegexp([
 ])
 
 function stdOutSearchErrorGlobal(text: string) {
-	return getGlobalConfig().stdOutSearchError
-		? getGlobalConfig().stdOutSearchError(text, stdOutSearchErrorDefault)
+	const config = getGlobalConfig()
+	return config.stdOutSearchError
+		? config.stdOutSearchError(text, stdOutSearchErrorDefault)
 		: stdOutSearchErrorDefault(text)
 }
 
@@ -96,9 +97,10 @@ function correctLog(message) {
 }
 
 function stdErrIsErrorGlobal(text: string) {
-	return getGlobalConfig().stdErrIsError
-		? getGlobalConfig().stdErrIsError(text, stdErrIsErrorDefault)
-		: stdErrIsErrorDefault(text)
+	const config = getGlobalConfig()
+	return typeof config.stdErrIsError === 'function'
+		? config.stdErrIsError(text, stdErrIsErrorDefault)
+		: config.stdErrIsError || stdErrIsErrorDefault(text)
 }
 
 function stdErrIsErrorDefault(text: string) {
@@ -158,9 +160,10 @@ function stdErrIsErrorDefault(text: string) {
 // region logFilter
 
 function logFilterGlobal(text: string) {
-	return getGlobalConfig().logFilter
-		? getGlobalConfig().logFilter(text, logFilterDefault)
-		: logFilterDefault(text)
+	const config = getGlobalConfig()
+	return typeof config.logFilter === 'function'
+		? config.logFilter(text, logFilterDefault)
+		: config.logFilter || logFilterDefault(text)
 }
 
 function logFilterDefault(text: string) {
@@ -232,9 +235,9 @@ function _run(command: string, {
 	stdErrIsError,
 }: IRunOptions = {}): Promise<IRunResult> {
 	function _logFilter(text: string) {
-		return logFilter
+		return typeof logFilter === 'function'
 			? logFilter(text, logFilterGlobal)
-			: logFilterGlobal(text)
+			: logFilter || logFilterGlobal(text)
 	}
 
 	function _stdOutSearchError(text: string) {
@@ -244,9 +247,9 @@ function _run(command: string, {
 	}
 
 	function _stdErrIsError(text: string) {
-		return stdErrIsError
+		return typeof stdErrIsError === 'function'
 			? stdErrIsError(text, stdErrIsErrorGlobal)
-			: stdErrIsErrorGlobal(text)
+			: stdErrIsError || stdErrIsErrorGlobal(text)
 	}
 
 	return Promise.resolve().then(() => {

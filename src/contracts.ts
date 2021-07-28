@@ -20,9 +20,9 @@ export type TextPredicate = (text: string, next: TextPredicate) => boolean
 export type ErrorSearch = (text: string, next: ErrorSearch) => string | void | null | false
 
 export interface ILogFilters {
-	logFilter?: TextPredicate,
+	logFilter?: TextPredicate|boolean,
 	stdOutSearchError?: ErrorSearch,
-	stdErrIsError?: TextPredicate,
+	stdErrIsError?: TextPredicate|boolean,
 }
 
 export interface IRunOptions extends ILogFilters {
