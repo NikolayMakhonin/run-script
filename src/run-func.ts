@@ -406,14 +406,21 @@ function _run(command: string, {
 					handler : line => {
 						try {
 							const lineTrim = line.trim()
-							if (!dontSearchErrors && _stdErrIsError(lineTrim)) {
+							const isError = !dontSearchErrors && _stdErrIsError(lineTrim)
+							if (isError) {
 								process.stdout.write(`STDERR: ${line}`)
 								_reject(line)
 								return
 							}
+							const error = isError == null
+								? _stdOutSearchError(lineTrim)
+								: null
 							if (!dontShowOutputs && _logFilter(lineTrim)) {
 								line = correctLog(line)
 								process.stdout.write(`${line}`)
+							}
+							if (error) {
+								_reject(`ERROR DETECTED: ${error}`)
 							}
 						} catch (ex) {
 							_reject(ex)
