@@ -356,9 +356,9 @@ function _run(command: string, {
 			}
 
 			proc
-				.on('disconnect', () => {
-					_reject('process.disconnect')
-				})
+				// .on('disconnect', () => {
+				// 	_reject('process.disconnect')
+				// })
 				.on('close', (code, signal) => {
 					if (!ignoreProcessExitCode && code) {
 						_reject(`process.close(code=${code}, signal=${signal})`)
@@ -373,9 +373,9 @@ function _run(command: string, {
 						_resolve()
 					}
 				})
-				.on('message', (message) => {
-					console.log(`process.message: ${message}`)
-				})
+				// .on('message', (message) => {
+				// 	console.log(`process.message: ${message}`)
+				// })
 				.on('error', err => {
 					_reject(err)
 				})
