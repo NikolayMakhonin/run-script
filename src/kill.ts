@@ -13,29 +13,29 @@ export function addProcess(proc) {
 	processList.push(proc)
 }
 
-// process.on('SIGTERM', () => {
-// 	console.log('SIGTERM')
-// 	killAll({isFailure: true, syncKill: true})
-// })
-// process.on('SIGHUP', () => {
-// 	console.log('SIGHUP')
-// 	killAll({isFailure: true, syncKill: true})
-// })
-// process.on('SIGINT', () => {
-// 	console.log('SIGINT')
-// 	killAll({isFailure: true, syncKill: true})
-// })
-// process.on('SIGBREAK', () => {
-// 	console.log('SIGBREAK')
-// 	killAll({isFailure: true, syncKill: true})
-// })
+process.on('SIGTERM', () => {
+	console.log('SIGTERM')
+	killAll({isFailure: true, syncKill: true})
+})
+process.on('SIGHUP', () => {
+	console.log('SIGHUP')
+	killAll({isFailure: true, syncKill: true})
+})
+process.on('SIGINT', () => {
+	console.log('SIGINT')
+	killAll({isFailure: true, syncKill: true})
+})
+process.on('SIGBREAK', () => {
+	console.log('SIGBREAK')
+	killAll({isFailure: true, syncKill: true})
+})
 
 // process.on('beforeExit', () => {
 // 	// console.log('beforeExit')
 // 	killAll({isFailure: false, syncKill: false})
 // })
 process.on('exit', code => {
-	console.log('run-script exit with code ' + code)
+	console.log('exit with code ' + code)
 	killAll({isFailure: !!code, syncKill: true})
 })
 
