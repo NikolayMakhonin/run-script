@@ -73,12 +73,14 @@ export function funcLog<TThis, TArgs extends any[], TValue = void>(
 			const result = await func.call(this, ...args)
 			runState.status = RunStatus.SUCCESS
 			runState.timeEnd = Date.now()
+			printRunState(runState.status, runState.timeStart, runState.timeEnd, runState.description)
 			return result
 		} catch (err) {
 			runState.status = RunStatus.ERROR
 			runState.timeEnd = Date.now()
 			if (!wasKillAll()) {
 				console.error(colors.bold().red(`✗ ${description}\r\n${err && err.stack || err && err.toString() || err}`))
+				printRunState(runState.status, runState.timeStart, runState.timeEnd, runState.description)
 			}
 			throw err
 		}
