@@ -31,7 +31,7 @@ describe('run', function () {
 				stdout.length = 0
 			}
 			process.stdout.write = function stdout_write_custom() {
-				stdout.push(arguments[0])
+				stdout.push(arguments[0].replace(/ *\([\d.]+ *sec\)/, ''))
 				return process_stdout_write.apply(this, arguments)
 			} as any
 			process.stderr.write = function stderr_write_custom() {
@@ -49,6 +49,7 @@ describe('run', function () {
 			assertOutput([
 				colors.blue(`RUN: ${command}`) + '\n',
 				...stdoutExpected,
+				colors.cyan(`SUCCESS: ${command}`) + '\n',
 			])
 
 			// const result = await run(command, {
